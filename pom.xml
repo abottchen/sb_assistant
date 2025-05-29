@@ -11,7 +11,7 @@
     <packaging>jar</packaging>
 
     <name>Support Bundle Chat Assistant</name>
-    <description>A CLI chat interface for querying against a support bundle using OpenAI and LangChain4J</description>
+    <description>A CLI chat interface for querying against a support bundle using OpenAI</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -23,21 +23,18 @@
     </properties>
 
     <dependencies>
-        <!-- LangChain4J Core -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
 
-        <!-- LangChain4J OpenAI Integration -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
 
-        <!-- Local embeddings model (optional - can use OpenAI instead) -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
@@ -50,6 +47,7 @@
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
+
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -69,6 +67,12 @@
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.1</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.fusesource.jansi</groupId>
+            <artifactId>jansi</artifactId>
+            <version>2.4.0</version>
         </dependency>
     </dependencies>
 

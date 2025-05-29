@@ -10,18 +10,19 @@ import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
 import org.apache.commons.io.FilenameUtils;
+import org.fusesource.jansi.AnsiConsole;
+import static org.fusesource.jansi.Ansi.*;
+import static org.fusesource.jansi.Ansi.Color.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -87,17 +88,21 @@ public class SupportBundleAssistant {
     }
 
     public static void main(String[] args) {
+        AnsiConsole.systemInstall();
+
         try {
             SupportBundleAssistant app = new SupportBundleAssistant();
             app.run(args);
         } catch (Exception e) {
             logger.error("Application failed to start", e);
             System.exit(1);
+        } finally {
+            AnsiConsole.systemUninstall();
         }
     }
 
     public void run(String[] args) throws IOException {
-        System.out.println("=== Support Bundle Chat Assistant ===");
+        System.out.println(ansi().fg(GREEN).bold().a("=== Support Bundle Chat Assistant ===").reset());
         System.out.println();
 
         // Index files if directory path provided
@@ -131,16 +136,16 @@ public class SupportBundleAssistant {
     private void startInteractiveChat() {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Commands:");
-        System.out.println("  - 'index <path>': Index files from a support bundle directory");
-        System.out.println("  - 'status': Show indexing status");
-        System.out.println("  - 'cache clear': Clear embedding cache");
-        System.out.println("  - 'cache stats': Show cache statistics");
-        System.out.println("  - 'quit' or 'exit': Exit the application");
+        System.out.println(ansi().bold().a("Commands:").reset());
+        System.out.println("  - " + ansi().fg(YELLOW).a("'index <path>'").reset() + ": Index files from a support bundle directory");
+        System.out.println("  - " + ansi().fg(YELLOW).a("'status'").reset() + ": Show indexing status");
+        System.out.println("  - " + ansi().fg(YELLOW).a("'cache clear'").reset() + ": Clear embedding cache");
+        System.out.println("  - " + ansi().fg(YELLOW).a("'cache stats'").reset() + ": Show cache statistics");
+        System.out.println("  - " + ansi().fg(YELLOW).a("'quit'").reset() + " or " + ansi().fg(YELLOW).a("'exit'").reset() + ": Exit the application");
         System.out.println();
 
         while (true) {
-            System.out.print("# ");
+            System.out.print(ansi().fg(GREEN).bold().a("sbassistant> ").reset());
             String input = scanner.nextLine().trim();
 
             if (input.isEmpty()) {
@@ -279,7 +284,9 @@ public class SupportBundleAssistant {
         public void run() {
             int i = 0;
             while (running) {
-                System.out.print("\rThinking " + spinnerChars[i % spinnerChars.length] + " ");
+                System.out.print("\r" + ansi().fgBright(BLACK).a("Thinking ").reset() +
+                    ansi().fg(CYAN).a(spinnerChars[i % spinnerChars.length]).reset() +
+                    ansi().fgBright(BLACK).a(" ").reset());
                 System.out.flush();
                 i++;
                 try {
