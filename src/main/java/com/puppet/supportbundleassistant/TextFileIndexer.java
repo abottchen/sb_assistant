@@ -20,8 +20,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -48,6 +50,7 @@ public class TextFileIndexer {
     // Cache directory and file tracking
     private final Path cacheDir = Paths.get(System.getProperty("user.home"), ".supportbundle-cache");
     private final Map<String, Long> fileHashes = new HashMap<>();
+    private final Set<String> indexedFiles = new HashSet<>();
 
     public TextFileIndexer(EmbeddingModel embeddingModel, EmbeddingStore<TextSegment> embeddingStore) {
         this.embeddingModel = embeddingModel;
@@ -124,6 +127,7 @@ public class TextFileIndexer {
             if (loadFromCache(fileKey, filePath)) {
                 logger.info("Loaded cached embeddings for: {}", filePath.getFileName());
                 indexedFileCount.incrementAndGet();
+                indexedFiles.add(filePath.toString()); // Track indexed files
                 return;
             }
         }
@@ -159,6 +163,7 @@ public class TextFileIndexer {
             saveCacheIndex();
 
             indexedFileCount.incrementAndGet();
+            indexedFiles.add(filePath.toString()); // Track indexed files
 
         } catch (Exception e) {
             logger.error("Failed to index text file: {}", filePath, e);
@@ -233,7 +238,7 @@ public class TextFileIndexer {
         if(validExtensions.contains(FilenameUtils.getExtension(fileName))) {
             return true;
         } else {
-          return false;
+            return false;
         }
     }
 
@@ -243,6 +248,10 @@ public class TextFileIndexer {
 
     public int getTotalSegmentCount() {
         return totalSegmentCount.get();
+    }
+
+    public Set<String> getIndexedFiles() {
+        return new HashSet<>(indexedFiles);
     }
 
     /**

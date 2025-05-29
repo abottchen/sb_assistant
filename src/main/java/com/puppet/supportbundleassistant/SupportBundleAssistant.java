@@ -14,13 +14,16 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 public class SupportBundleAssistant {
     private static final Logger logger = LoggerFactory.getLogger(SupportBundleAssistant.class);
@@ -29,9 +32,9 @@ public class SupportBundleAssistant {
     private final ChatAssistant chatAssistant;
     private final EmbeddingStore<TextSegment> embeddingStore;
     private final EmbeddingModel embeddingModel;
+    private String dynamicSystemMessage;
 
     interface ChatAssistant {
-        @SystemMessage(fromResource = "/system-message.md")
         String chat(String message);
     }
 
@@ -76,7 +79,11 @@ public class SupportBundleAssistant {
         this.chatAssistant = AiServices.builder(ChatAssistant.class)
             .chatModel(chatModel)
             .retrievalAugmentor(retrievalAugmentor)
+            .systemMessageProvider(chatRequest -> dynamicSystemMessage)
             .build();
+
+        // Load base system message
+        this.dynamicSystemMessage = loadBaseSystemMessage();
     }
 
     public static void main(String[] args) {
@@ -116,6 +123,9 @@ public class SupportBundleAssistant {
         System.out.printf("Successfully indexed %d text files in %.2f seconds%n",
             indexedCount, (endTime - startTime) / 1000.0);
         System.out.println();
+
+        // Update system message with file-specific context
+        updateSystemMessageWithFileContext();
     }
 
     private void startInteractiveChat() {
@@ -201,6 +211,64 @@ public class SupportBundleAssistant {
     }
 
     /**
+     * Load base system message from resource file
+     */
+    private String loadBaseSystemMessage() {
+        try {
+            return new String(getClass().getResourceAsStream("/system-message.md").readAllBytes());
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to load system message", e);
+        }
+    }
+
+    /**
+     * Update system message with context about the specific files that were indexed
+     */
+    private void updateSystemMessageWithFileContext() {
+        Set<String> indexedFiles = fileIndexer.getIndexedFiles();
+        StringBuilder fileContext = new StringBuilder();
+
+        fileContext.append("\n\n## INDEXED FILES AND ANALYSIS GUIDELINES\n");
+        fileContext.append("The following files have been indexed and are available for analysis:\n\n");
+
+        // Analyze what types of files we have and provide specific guidance
+        for (String filePath : indexedFiles) {
+            String fileName = stripFirstTwoPathElements(filePath);
+            if(fileName.startsWith("targets/")) {
+                fileName = stripFirstTwoPathElements(fileName);
+            }
+            fileContext.append("### ").append(fileName).append("\n");
+            fileContext.append("**Location:** `").append(filePath).append("`\n");
+
+            // Load file-specific instructions from resources
+            String fileInstructions = loadFileSpecificInstructions(fileName);
+            fileContext.append(fileInstructions);
+        }
+
+        this.dynamicSystemMessage = loadBaseSystemMessage() + fileContext.toString();
+    }
+
+    /**
+     * Load file-specific instructions from resource files based on the file path
+     */
+    private String loadFileSpecificInstructions(String filePath) {
+        String resourcePath = "/prompts/" + filePath + ".md";
+        try {
+            var inputStream = getClass().getResourceAsStream(resourcePath);
+            if (inputStream != null) {
+                String content = new String(inputStream.readAllBytes());
+                logger.debug("Loaded file-specific instructions from: {}", resourcePath);
+                return content;
+            }
+        } catch (Exception e) {
+            logger.debug("Could not load instructions from: {}", resourcePath);
+        }
+
+        logger.debug("No specific instructions found for file: {}", filePath);
+        return null;
+    }
+
+    /**
      * Simple spinner thread for showing processing status
      */
     private static class SpinnerThread extends Thread {
@@ -231,5 +299,18 @@ public class SupportBundleAssistant {
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    private String stripFirstTwoPathElements(String filePath) {
+        String normalizedPath = FilenameUtils.normalizeNoEndSeparator(filePath);
+
+        // Find the second separator
+        int firstSep = normalizedPath.indexOf('/');
+        if (firstSep == -1) return "";
+
+        int secondSep = normalizedPath.indexOf('/', firstSep + 1);
+        if (secondSep == -1) return "";
+
+        return normalizedPath.substring(secondSep + 1);
     }
 }
