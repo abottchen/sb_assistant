@@ -1,15 +1,9 @@
 <!-- src/main/resources/logback.xml -->
 <configuration>
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/text-file-chat-assistant.log</file>
+        <file>logs/support-bundle-assistant.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/text-file-chat-assistant.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <fileNamePattern>logs/support-bundle-assistant.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
             <maxFileSize>10MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>300MB</totalSizeCap>
@@ -20,11 +14,11 @@
     </appender>
 
     <!-- Set logging levels -->
-    <logger name="com.example.filechat" level="INFO"/>
+    <logger name="com.puppet.supportbundleassistant" level="INFO"/>
     <logger name="dev.langchain4j" level="INFO"/>
+    <logger name="org.fusesource.jansi" level="WARN"/>
 
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </root>
 </configuration>

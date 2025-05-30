@@ -1,5 +1,10 @@
 Whenever a question is related to the health of CD4PE or the status of the application, this is the primary file to
-look at.
+look at. When providing information on the container status, always provide information on all 4 containers: query, ui,
+pipelinesinfra, and postgres.
+
+IMPORTANT NOTE:
+The query container may not have a "COMMAND" in the output. This is normal. If you think it is not running, check
+the `runtime/containers/query.json` file to make sure.
 
 Should show 4 running containers, one for pipelinesinfra, postgres, ui, and query:
 
@@ -12,8 +17,8 @@ d03ead77698c  gcr.io/platform-services-297419/teams-ui:latest                   
 All four containers must be in a running state and configured with the ports from this example.
 
 If there are port descrepancies or if a container is missing or not in a running state, that would indicate that there
-is a failure.  If a container is missing, look at the `runtime/containers/<failing container name>.json` file for
-details on what might have gone wrong.
+is a failure.  If a container is missing or looks to not be running, look at the corresponding file for that service
+in `runtime/containers/*.json` for more information. 
 
 If the pipelinesinfra container is not running, analyze the `logs/backend/pipelinesinfra/*` files for more information
 on the failure.
@@ -23,6 +28,3 @@ If the postgres container is not running, analyze the `logs/database.postgres/*`
 on the failure.
 If the pipelinesinfra container is not running, analyze the `logs/ui.ui/*` files for more information
 on the failure.
-
-When providing information on the status of CD4PE, always report the status of all 4 containers. Format information
-as a table to improve readability.
